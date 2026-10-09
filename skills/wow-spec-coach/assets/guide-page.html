@@ -1,0 +1,340 @@
+<title>Nyxa's Demonology Setup</title>
+<!--
+  Template for the visual guide page (ADHD-friendly). Example content: Demonology Warlock.
+  To reuse:
+  1. <title> = "<Character>'s <Spec> Setup". Keep the header line to one sentence.
+  2. #loop: the 3 hottest buttons (build / spend / proc) and Rule #1 of the spec.
+  3. #now: at most 4 steps for the next 10 minutes; mark finished ones with class="done".
+  4. #levels: 5 levels, each = keys to learn + a drill with a time + "Done when ...". Update nextText in the script.
+  5. #fixes: at most 5 "if this -> press that" rows.
+  6. BINDS / ROWS / MOVE in the script for the heatmap (heat 4 = every GCD ... 1 = rare).
+  7. Everything long (why, deep mechanics, tables) goes inside <details>.
+  Theme: --lock = class accent, --h0..--h4 = heat ramp.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+SC:wght@500;700&family=Alegreya+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: ADHD-first. Core loop on top, then "next 10 minutes", a 5-level learning path with checkboxes,
+   quick fixes, the keyboard heatmap, then reference. Long "why" text sits behind toggles. */
+:root{
+  --bg:#f3f1f8; --surface:#fbfaff; --ink:#1f1a2e; --muted:#5d5673; --line:#d9d3e8;
+  --lock:#5b4fd6; --fel:#2f8a16; --on-lock:#fbfaff;
+  --h0:#e6e2ef; --h1:#d8d0f3; --h2:#b9a9f2; --h3:#8fd16b; --h4:#5fd12a; --hot-ink:#10200a;
+  --hink:#1f1a2e; --move:#eceaf2; --done:#2f8a16;
+  --display:"Alegreya SC", "Palatino Linotype", Georgia, serif;
+  --body:"Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13101c; --surface:#1b1727; --ink:#ebe7f6; --muted:#a39cba; --line:#2f2942;
+  --lock:#9a93f2; --fel:#8be35c; --on-lock:#13101c;
+  --h0:#221d31; --h1:#2f2750; --h2:#4b3c8f; --h3:#3f7d22; --h4:#6ee02f;
+  --hink:#ebe7f6; --move:#1a1724; --done:#8be35c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13101c; --surface:#1b1727; --ink:#ebe7f6; --muted:#a39cba; --line:#2f2942;
+  --lock:#9a93f2; --fel:#8be35c; --on-lock:#13101c;
+  --h0:#221d31; --h1:#2f2750; --h2:#4b3c8f; --h3:#3f7d22; --h4:#6ee02f;
+  --hink:#ebe7f6; --move:#1a1724; --done:#8be35c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:400 1.08rem/1.5 var(--body);padding-inline:16px;padding-block:24px 64px}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:44px}
+h1,h2,h3{font-family:var(--display);font-weight:700;text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(1.9rem,5vw,2.8rem)}
+h2{font-size:1.55rem;color:var(--lock)}
+h3{font-size:1.12rem}
+p{margin:0;max-width:66ch}
+a{color:var(--lock)}
+.eyebrow{font:600 .76rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+header,section{display:flex;flex-direction:column;gap:14px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:20px}
+.cols>*{min-width:0;display:flex;flex-direction:column;gap:10px}
+ol,ul{margin:0;padding-left:1.3em;display:flex;flex-direction:column;gap:6px}
+code,kbd{font-family:var(--mono);font-size:.86em}
+kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 .35em;background:var(--surface);white-space:nowrap;font-weight:600}
+.note{color:var(--muted);font-size:.93rem}
+details{border-top:1px solid var(--line);padding-top:8px}
+summary{cursor:pointer;font-weight:700;color:var(--lock)}
+details>*:not(summary){margin-top:8px}
+
+/* core loop */
+.loop{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.cap{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.cap .k{font:600 2.2rem/1 var(--mono);width:64px;height:64px;display:grid;place-items:center;border-radius:10px;background:var(--h4);color:var(--hot-ink);border-bottom:4px solid var(--fel)}
+.cap .v{font:600 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.cap b{font-size:1.05rem}
+.rule{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:12px 14px;border-radius:10px;background:var(--lock);color:var(--on-lock);font-weight:700}
+@media (max-width:560px){.loop{grid-template-columns:1fr}.cap{flex-direction:row;align-items:center;gap:12px}.cap .k{flex:none}}
+
+/* steps + levels */
+.steps{counter-reset:s;list-style:none;padding:0;gap:10px}
+.steps li{counter-increment:s;display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;align-items:start}
+.steps li::before{content:counter(s);font:600 .9rem/28px var(--mono);text-align:center;border-radius:50%;background:var(--lock);color:var(--on-lock);height:28px}
+.steps li.done::before{content:"✓";background:var(--done)}
+.bar{height:10px;border-radius:5px;background:var(--h0);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--h4);transition:width .3s}
+.levels{display:flex;flex-direction:column;gap:10px}
+.lvl{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 14px;padding:14px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.lvl input{width:24px;height:24px;margin:2px 0 0;accent-color:var(--done);grid-row:span 4}
+.lvl h3{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:baseline}
+.lvl h3 small{font:600 .78rem/1 var(--mono);color:var(--muted)}
+.lvl .d{color:var(--muted)}
+.lvl.is-done{border-color:var(--done)}
+.lvl.is-done h3{color:var(--done)}
+
+/* quick fixes */
+.fix{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:0}
+.fix>*{padding:9px 12px;border-bottom:1px solid var(--line)}
+.fix>:nth-child(even){text-align:right;white-space:nowrap}
+
+/* keyboard */
+.kb-wrap{overflow-x:auto;padding-bottom:6px}
+.kb{display:flex;flex-direction:column;gap:6px;min-width:640px}
+.row{display:flex;gap:6px}
+.key{width:104px;min-height:88px;border-radius:8px;padding:7px 8px;display:flex;flex-direction:column;gap:3px;background:var(--h0);color:var(--hink);border:1px solid var(--line)}
+.key b{font:600 .95rem/1 var(--mono)}
+.key .a{font-weight:700;font-size:.9rem;line-height:1.15}
+.key .s{font-size:.8rem;line-height:1.15;opacity:.8;margin-top:auto}
+.key.mv{background:var(--move);color:var(--muted)}
+.t1{background:var(--h1)}.t2{background:var(--h2)}.t3{background:var(--h3)}.t4{background:var(--h4);color:var(--hot-ink)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:.88rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.sw{width:16px;height:16px;border-radius:4px;border:1px solid var(--line);display:inline-block}
+
+/* imports + tables */
+.imp{display:flex;flex-direction:column;gap:10px}
+.imp-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 12px;align-items:center;padding:12px 14px;background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.imp-row .lbl{font-weight:700}
+.imp-row .lbl small{font-weight:400;color:var(--muted)}
+.imp-row input{grid-column:1/-1;width:100%;font:500 .78rem/1.4 var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:6px 8px}
+button{font:600 .85rem/1 var(--body);color:var(--on-lock);background:var(--lock);border:0;border-radius:6px;padding:8px 12px;cursor:pointer}
+button:focus-visible,input:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--fel);outline-offset:2px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .74rem/1.2 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.next{padding:16px;border-radius:12px;border:2px solid var(--fel);background:var(--surface);font-size:1.15rem;font-weight:700}
+@media (prefers-reduced-motion:no-preference){.key{transition:transform .12s}.key:hover{transform:translateY(-2px)}}
+</style>
+
+<main>
+<header>
+  <span class="eyebrow">Nyxa · Demonology · Diabolist · 12.1.0 Season 2</span>
+  <h1>Nyxa's Demonology Setup</h1>
+  <p>Learn three buttons first. Everything else waits until they feel automatic.</p>
+</header>
+
+<section id="loop" aria-label="Core loop">
+  <div class="loop">
+    <div class="cap"><span class="k">Q</span><div><span class="v">Build</span><br><b>Shadow Bolt</b><p class="note">+1 shard. Your default button.</p></div></div>
+    <div class="cap"><span class="k">E</span><div><span class="v">Spend</span><br><b>Hand of Gul'dan</b><p class="note">At 3+ shards. Every shard = 1 imp.</p></div></div>
+    <div class="cap"><span class="k">R</span><div><span class="v">Proc</span><br><b>Demonbolt</b><p class="note">When it glows: instant, +2 shards.</p></div></div>
+  </div>
+  <div class="rule"><span>Rule #1: never sit at 5 shards.</span><span>At 4, don't press R. At 5, press Q.</span></div>
+</section>
+
+<section id="now">
+  <h2>Your next 10 minutes</h2>
+  <ol class="steps">
+    <li class="done"><span><b>Bars and binds are set.</b> You ran <kbd>/speckeys</kbd>.</span></li>
+    <li><span><b>Import the M+ build</b> (copy box below) in Talents › Loadouts › Import. 1 min.</span></li>
+    <li><span><b>Make healthstones:</b> press <kbd>Ctrl+E</kbd>. The red <kbd>?</kbd> on <kbd>C</kbd> disappears. 10 s.</span></li>
+    <li><span><b>Find a target dummy</b> (any capital city) and do <b>Level 1</b>. 5 min.</span></li>
+  </ol>
+</section>
+
+<section id="levels">
+  <h2>Learning path</h2>
+  <div class="bar" aria-hidden="true"><i id="prog"></i></div>
+  <p class="note" id="progtxt">0 of 5 levels done</p>
+  <div class="levels">
+    <label class="lvl"><input type="checkbox" id="lv1">
+      <h3>Level 1 · Core loop <small>5 min · target dummy</small></h3>
+      <p><kbd>Q</kbd> to build, <kbd>E</kbd> at 3+ shards, <kbd>R</kbd> whenever it glows.</p>
+      <p class="d">Done when you go 5 minutes without hitting 5 shards.</p></label>
+    <label class="lvl"><input type="checkbox" id="lv2">
+      <h3>Level 2 · Dogs + Tyrant <small>10 min · target dummy</small></h3>
+      <p><kbd>F</kbd> Dreadstalkers whenever it's ready, before <kbd>E</kbd>. Press <kbd>2</kbd> Tyrant right after dogs are out and you've just made imps.</p>
+      <p class="d">Done when Tyrant always lands with the dogs out. Bonus: keep <kbd>R</kbd> glowing (2 Cores) going into Tyrant.</p></label>
+    <label class="lvl"><input type="checkbox" id="lv3">
+      <h3>Level 3 · Packs <small>15 min · follower dungeon or delve</small></h3>
+      <p><kbd>1</kbd> Implosion when the number on it reads 6 (your imps). <kbd>T</kbd> Shadowfury stuns the pack at your cursor.</p>
+      <p class="d">Done when you implode at 6 on every pack.</p></label>
+    <label class="lvl"><input type="checkbox" id="lv4">
+      <h3>Level 4 · Opener <small>10 min · dummy + <code>/countdown 10</code></small></h3>
+      <p>At 4 s: <kbd>R</kbd>. Then <kbd>3</kbd> <kbd>F</kbd> <kbd>Q</kbd> <kbd>2</kbd>, potion <kbd>⇧2</kbd>, <kbd>E</kbd> <kbd>E</kbd> <kbd>Q</kbd> <kbd>1</kbd>.</p>
+      <p class="d">Done when you can do it without looking at this page.</p></label>
+    <label class="lvl"><input type="checkbox" id="lv5">
+      <h3>Level 5 · Stay alive, kick casters <small>a few low keys (+2 to +5)</small></h3>
+      <p><kbd>G</kbd> Axe Toss on casts. <kbd>Z</kbd> before big hits, <kbd>C</kbd> when low. <kbd>⇧F</kbd> teleports you out of bad stuff.</p>
+      <p class="d">Done when you finish a key without dying to a mechanic.</p></label>
+  </div>
+</section>
+
+<section id="fixes">
+  <h2>If this, press that</h2>
+  <div class="fix">
+    <span>Shards at 5</span><span><kbd>E</kbd></span>
+    <span><kbd>R</kbd> is glowing</span><span><kbd>R</kbd></span>
+    <span>3+ enemies and the number on <kbd>1</kbd> reads 6</span><span><kbd>1</kbd></span>
+    <span>An enemy is casting</span><span><kbd>G</kbd></span>
+    <span>Health dropping fast</span><span><kbd>Z</kbd>, then <kbd>C</kbd></span>
+  </div>
+</section>
+
+<section id="keys">
+  <h2>Your keyboard</h2>
+  <div class="kb-wrap"><div class="kb" id="kb" role="img" aria-label="Keyboard heatmap of keybinds"></div></div>
+  <div class="legend" id="legend"></div>
+  <p class="note">The heat is estimated from the rotation. <kbd>Ctrl+Q</kbd> Soulwell, <kbd>Ctrl+E</kbd> healthstones.</p>
+</section>
+
+<section id="talents">
+  <h2>Talents</h2>
+  <div class="imp">
+    <div class="imp-row"><span class="lbl">Mythic+ / Delves / raid cleave <small>start here</small></span><button type="button" data-copy="c2">Copy</button><input id="c2" readonly value="CoQAAAAAAAAAAAAAAAAAAAAAAYmhZGNbmx2MzYWGAAAAAAAwYGDLwAbj2ohFjZGLz2MzMmBAmZMmZmZAmZGmZDAAMmZmxwwyMGwA" aria-label="Mythic plus import string"></div>
+    <div class="imp-row"><span class="lbl">Raid single target</span><button type="button" data-copy="c1">Copy</button><input id="c1" readonly value="CoQAAAAAAAAAAAAAAAAAAAAAAYmZMzoZjhZmxsMAAAAAAAgxMGWgB2GtQDLGjxysMzMjZAgZGzMzMzAMzMmZAAAGzMzMDDLzYAD" aria-label="Raid import string"></div>
+  </div>
+  <details><summary>Later: M+ Doomguard build (harder)</summary>
+    <div class="imp-row"><span class="lbl">Mythic+ Doomguard <small>adds <kbd>4</kbd> Doomguard and Doom spreading; Grimoire becomes a kick</small></span><button type="button" data-copy="c3">Copy</button><input id="c3" readonly value="CoQAAAAAAAAAAAAAAAAAAAAAAwMjZGNbmx2MzYWGAAAAAAAwYGDLwAbj2ohFDGLjZmZmZAgZMzYmZGgxMMzGAAYmZmZmZGsNzAMA" aria-label="Doomguard import string"></div>
+  </details>
+  <details><summary>Why these talents?</summary><ul>
+    <li><b>Implosion, not Power Siphon:</b> your only on-demand AoE, up to 6 imps every 15 s.</li>
+    <li><b>Vilefiend</b> comes out with every <kbd>F</kbd> for free, and <b>Reign of Tyranny</b> makes Tyrant and the dogs last longer.</li>
+    <li><b>Raid vs cleave:</b> only two swaps. Practiced Rituals ↔ Dreadlash, Mark of Shatug (single target) ↔ F'harg (AoE).</li>
+    <li><b>M+ class talents:</b> Shadowfury (AoE stun) and Blight of Tongues (slower casts, easier kicks).</li>
+    <li><b>Diabolist:</b> Wowhead's pick everywhere, for its passive AoE and better defensives.</li>
+  </ul></details>
+</section>
+
+<section id="damage">
+  <h2>Where your damage comes from</h2>
+  <p><b>Your demons do the damage.</b> You summon them, then make them stronger.</p>
+  <ul>
+    <li><kbd>E</kbd> makes <b>Wild Imps</b>: your biggest damage source.</li>
+    <li><kbd>F</kbd> makes <b>Dreadstalkers + Vilefiend</b>.</li>
+    <li><kbd>2</kbd> <b>Tyrant</b> buffs every demon that's out. More demons = bigger Tyrant.</li>
+    <li><b>Mastery</b> raises demon damage.</li>
+  </ul>
+  <details><summary>Diabolist bonus demons (they come by themselves)</summary>
+    <p>Spending shards fills Diabolic Ritual. When it ends, your next <kbd>E</kbd> summons a big demon, always in this order: <b>Overlord</b> (+5% damage taken) → <b>Mother of Chaos</b> (<kbd>Q</kbd> becomes Infernal Bolt, 3 shards) → <b>Pit Lord</b> (<kbd>E</kbd> becomes Ruination, +3 imps). Each one also drops Demonic Oculi that explode for AoE and give you Intellect. You press nothing new: watch <kbd>Q</kbd> and <kbd>E</kbd> change.</p>
+  </details>
+</section>
+
+<section id="gear">
+  <h2>Getting stronger</h2>
+  <div class="cols">
+    <div><h3>Now</h3><ol>
+      <li><b>Higher item level wins.</b> Equip it even with worse stats.</li>
+      <li>Stats when ilvl ties: <b>Haste = Crit &gt; Mastery &gt; Vers</b>.</li>
+      <li>Before keys and raids: Flask of the Shattered Sun, Thalassian Phoenix Oil, Royal Roast.</li>
+      <li>Potions in bags: Light's Potential (<kbd>⇧2</kbd>), Concentrated Silvermoon Health Potion (<kbd>⇧C</kbd>).</li>
+    </ol></div>
+    <div><h3>Later</h3><ol>
+      <li>Sim yourself on Raidbots once you have a few upgrades.</li>
+      <li>Craft <b>Arcanoweave Lining</b> as your embellishment.</li>
+      <li>Catalyst tier pieces. The 4-piece gives you free Implosions.</li>
+      <li>Nebulous Voidcore bonus rolls drop Myth-track items at +10 keys or Heroic raid bosses.</li>
+      <li>Chase the trinkets Gebbo's Bottomless Bag and Vile Vial of Volatile Venom.</li>
+    </ol></div>
+  </div>
+  <details><summary>Enchants and gems</summary><div class="tbl"><table>
+    <tr><th>Slot</th><th>Best</th></tr>
+    <tr><td>Weapon</td><td>Jan'alai's Precision</td></tr>
+    <tr><td>Helm</td><td>Empowered Rune of Avoidance</td></tr>
+    <tr><td>Chest</td><td>Mark of the Worldsoul</td></tr>
+    <tr><td>Shoulders</td><td>Flight of the Eagle</td></tr>
+    <tr><td>Legs</td><td>Sunfire Silk Spellthread</td></tr>
+    <tr><td>Boots</td><td>Lynx's Dexterity</td></tr>
+    <tr><td>Rings</td><td>Silvermoon's Alacrity</td></tr>
+    <tr><td>Gems</td><td>Indecipherable Eversong Diamond + Flawless Quick Garnet / Deadly Amethyst / Masterful Peridot</td></tr>
+    <tr><td>Rune</td><td>Void-Touched Augment Rune</td></tr>
+  </table></div></details>
+  <details><summary>Leveling 81–90 talent order</summary>
+    <p>Inner Demons → Fel Synergy → Diabolic Oculi → Demonic Knowledge → Fel Synergy → Looks That Kill → Demonic Knowledge → Soulburn → Mind's Eyes → Blighted Maw</p>
+  </details>
+</section>
+
+<section id="backup">
+  <h2>If something breaks</h2>
+  <ul>
+    <li>Binds or bars messed up: type <kbd>/speckeys</kbd> again.</li>
+    <li>Red <kbd>?</kbd> icon: that item isn't in your bags, or that talent isn't picked.</li>
+    <li>Undo the binds: Options › Keybindings › untick <i>Character Specific Keybindings</i>.</li>
+  </ul>
+  <p class="note">Sources: Wowhead Demonology guides by NotWarlock, updated 2026-08-12 (<a href="https://www.wowhead.com/guide/classes/warlock/demonology/overview-pve-dps">overview</a>, <a href="https://www.wowhead.com/guide/classes/warlock/demonology/talent-builds-pve-dps">talents</a>, <a href="https://www.wowhead.com/guide/classes/warlock/demonology/rotation-cooldowns-pve-dps">rotation</a>). The keybind layout and learning path are my own.</p>
+</section>
+
+<div class="next" id="next">Next: target dummy, Level 1, 5 minutes.</div>
+</main>
+
+<script>
+// Keyboard heatmap data. heat: 4 every GCD, 3 every 15-20 s, 2 reactions + cooldowns, 1 rare, 0 free.
+const ROWS = [["1","2","3","4","5"],["Q","W","E","R","T"],["A","S","D","F","G"],["Z","X","C","V"]];
+const MOVE = ["W","A","S","D"];
+const BINDS = {
+  "1":{a:"Implosion",s:"Soulburn",h:3}, "2":{a:"Demonic Tyrant + trinket",s:"Combat potion",h:2},
+  "3":{a:"Grimoire",s:"Soulstone (mouseover)",h:2}, "4":{a:"Doomguard",s:"Fel Dom + Felguard",h:1},
+  "5":{a:"free",s:"",h:0},
+  Q:{a:"Shadow Bolt",s:"Curse of Tongues",h:4}, E:{a:"Hand of Gul'dan",s:"Fear",h:4},
+  R:{a:"Demonbolt",s:"Burning Rush",h:4}, T:{a:"Shadowfury @cursor",s:"Gateway @cursor",h:2},
+  F:{a:"Call Dreadstalkers",s:"Circle: Teleport",h:3}, G:{a:"Axe Toss (kick/stun)",s:"Demonic Circle",h:2},
+  Z:{a:"Unending Resolve",s:"Drain Life",h:2}, X:{a:"Dark Pact",s:"Curse of Exhaustion",h:2},
+  C:{a:"Healthstone",s:"Health potion",h:2}, V:{a:"Mortal Coil",s:"Banish",h:1},
+};
+const LEGEND = ["Rare or build-specific","Reactions and 1-2 min cooldowns","Every 15-20 s","Every GCD"];
+
+const kb = document.getElementById("kb");
+ROWS.forEach((row, i) => {
+  const r = document.createElement("div");
+  r.className = "row"; r.style.paddingLeft = [0, 30, 46, 72][i] + "px";
+  row.forEach(k => {
+    const b = BINDS[k], el = document.createElement("div"), move = MOVE.includes(k);
+    el.className = "key " + (move ? "mv" : b && b.h ? "t" + b.h : "");
+    el.innerHTML = "<b></b><span class='a'></span>" + (b && b.s ? "<span class='s'></span>" : "");
+    el.querySelector("b").textContent = k;
+    el.querySelector(".a").textContent = move ? "move" : b ? b.a : "free";
+    if (b && b.s) el.querySelector(".s").textContent = "⇧ " + b.s;
+    r.appendChild(el);
+  });
+  kb.appendChild(r);
+});
+const lg = document.getElementById("legend");
+[4, 3, 2, 1].forEach(h => {
+  const s = document.createElement("span");
+  s.innerHTML = "<i class='sw' style='background:var(--h" + h + ")'></i>";
+  s.append(LEGEND[h - 1]); lg.appendChild(s);
+});
+
+// Learning path progress, remembered in this browser only.
+const KEY = "speckeys-levels-" + document.title;
+const boxes = [...document.querySelectorAll(".lvl input")];
+let saved = {};
+try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+const nextText = ["Next: target dummy, Level 1, 5 minutes.", "Next: Level 2, dogs + Tyrant, 10 minutes.",
+  "Next: Level 3, a follower dungeon or delve, 15 minutes.", "Next: Level 4, the opener, 10 minutes.",
+  "Next: Level 5, run a +2 key.", "All 5 levels done. Next: sim yourself on Raidbots."];
+function render() {
+  const done = boxes.filter(b => b.checked).length;
+  boxes.forEach(b => b.closest(".lvl").classList.toggle("is-done", b.checked));
+  document.getElementById("prog").style.width = (done / boxes.length * 100) + "%";
+  document.getElementById("progtxt").textContent = done + " of " + boxes.length + " levels done";
+  const first = boxes.findIndex(b => !b.checked);
+  document.getElementById("next").textContent = nextText[first === -1 ? boxes.length : first];
+}
+boxes.forEach(b => {
+  b.checked = !!saved[b.id];
+  b.addEventListener("change", () => {
+    saved[b.id] = b.checked;
+    try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+    render();
+  });
+});
+render();
+
+document.querySelectorAll("button[data-copy]").forEach(b => b.addEventListener("click", () => {
+  const i = document.getElementById(b.dataset.copy);
+  navigator.clipboard.writeText(i.value)
+    .then(() => { b.textContent = "Copied"; setTimeout(() => b.textContent = "Copy", 1500); })
+    .catch(() => { i.focus(); i.select(); b.textContent = "Press Ctrl+C"; });
+}));
+</script>

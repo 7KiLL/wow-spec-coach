@@ -1,0 +1,5 @@
+## Interface: 120100
+## Title: SpecKeys
+## Notes: /speckeys - puts your class+spec layout on the action bars and binds its keys
+Core.lua
+Layouts.lua
